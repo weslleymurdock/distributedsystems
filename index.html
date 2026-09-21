@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Atividade 3 - Protocolos de Comunicação</title>
+    <style>
+        /* Boileplate Required CSS */
+        @page { margin: 0; }
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; }
+        html { background-color: #ffffff; }
+        @media (prefers-color-scheme: dark) {
+            html { background-color: #1f1f1f; }
+        }
+        body { 
+            padding: 24px 0;
+            margin: 0 auto;
+            max-width: 900px !important;
+            border: none !important;
+            background: transparent !important; 
+        }
+        .page {
+            height: 297mm;
+            margin: 0 auto 12px auto;
+            padding: 18mm 18mm 12mm 18mm; /* 18mm top, 18mm sides, 12mm bottom */
+            background-color: #ffffff;
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+        @media screen and (max-width: 600px) {
+            body {
+                padding: 16px 0;
+            }
+            .page {
+                margin: 0 auto 8px auto;
+                border: none;
+                padding: 12px 20px;
+            }
+        }
+        .page-content {
+            flex: 1 1 0;
+            min-height: 0;
+            overflow: hidden;
+        }
+        .page-footer {
+            flex-shrink: 0;
+            margin-top: auto;
+            padding-top: 4mm;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 8.5pt;
+            color: #64748b;
+        }
+        @media print {
+            *, *::before, *::after {
+                box-shadow: none !important;
+                text-shadow: none !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            body { padding: 0; background: none; }
+            .page {
+                margin: 0;
+                border: none;
+                height: 297mm;
+                break-after: page;
+                page-break-after: always;
+            }
+            .page:last-child { break-after: auto; page-break-after: auto; }
+        }
+        [contenteditable]:focus { outline: none; }
+
+        /* Custom Document Styles */
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            color: #1e293b;
+        }
+        h1 {
+            font-size: 20pt;
+            color: #0f172a;
+            margin-top: 0;
+            margin-bottom: 16px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 8px;
+        }
+        h2 {
+            font-size: 15pt;
+            color: #1e293b;
+            margin-top: 16px;
+            margin-bottom: 12px;
+            border-left: 4px solid #3b82f6;
+            padding-left: 10px;
+        }
+        h3 {
+            font-size: 12pt;
+            color: #334155;
+            margin-top: 16px;
+            margin-bottom: 12px;
+        }
+        p {
+            text-align: justify;
+            font-size: 10.5pt;
+            line-height: 1.6;
+            margin-top: 0;
+            margin-bottom: 12px;
+        }
+        blockquote {
+            background-color: #f8fafc;
+            border-left: 4px solid #94a3b8;
+            margin: 0 0 16px 0;
+            padding: 12px 16px;
+            font-size: 10pt;
+            color: #475569;
+            text-align: justify;
+            line-height: 1.5;
+        }
+        blockquote blockquote {
+            margin-top: 10px;
+            margin-bottom: 0;
+            border-left: 3px solid #cbd5e1;
+            background-color: #f1f5f9;
+        }
+        ul {
+            margin: 0 0 16px 0;
+            padding-left: 24px;
+            text-align: justify;
+        }
+        li {
+            font-size: 10.5pt;
+            line-height: 1.5;
+            margin-bottom: 6px;
+        }
+        code {
+            background-color: #e2e8f0;
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 9.5pt;
+        }
+        
+        /* Sequence Diagram Tables */
+        .seq-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 16px;
+            font-size: 9pt;
+        }
+        .seq-table th {
+            background-color: #e2e8f0;
+            color: #0f172a;
+            padding: 8px;
+            text-align: center;
+            border: 1px solid #cbd5e1;
+            font-size: 10pt;
+        }
+        .seq-table td {
+            padding: 6px 8px;
+            border-bottom: 1px dashed #e2e8f0;
+            vertical-align: middle;
+        }
+        .seq-table .dir {
+            text-align: center;
+            font-weight: bold;
+            color: #3b82f6;
+            font-size: 14pt;
+        }
+        .seq-table .msg-right {
+            text-align: right;
+            color: #334155;
+            font-weight: bold;
+        }
+        .seq-table .msg-left {
+            text-align: left;
+            color: #334155;
+            font-weight: bold;
+        }
+        .seq-table .note {
+            background-color: #fef9c3;
+            padding: 8px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 9.5pt;
+            border: 1px solid #fde047;
+            color: #854d0e;
+        }
+        .seq-table .error {
+            color: #dc2626;
+            text-decoration: line-through;
+        }
+
+        /* OSI Model Stack Diagram */
+        .osi-stack {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 16px;
+        }
+        .osi-layer {
+            display: flex;
+            align-items: center;
+            width: 90%;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            margin-bottom: 4px;
+            padding: 8px 12px;
+            background-color: #ffffff;
+        }
+        .osi-title {
+            font-weight: bold;
+            width: 28%;
+            font-size: 9.5pt;
+            border-right: 1px solid rgba(0,0,0,0.15);
+            padding-right: 8px;
+            margin-right: 12px;
+            color: #0f172a;
+        }
+        .osi-desc {
+            width: 72%;
+            font-size: 9pt;
+            text-align: left;
+            color: #334155;
+            line-height: 1.4;
+        }
+        .osi-arrow {
+            font-size: 14pt;
+            color: #94a3b8;
+            margin-bottom: 4px;
+        }
+        
+        /* Layer Theme Colors */
+        .l-app { background-color: #d4edda; border-color: #28a745; }
+        .l-trans { background-color: #cce5ff; border-color: #007bff; }
+        .l-lower { background-color: #fefcbf; border-color: #d69e2e; }
+        
+        .l-app-pix { background-color: #f9ebf0; border-color: #d6336c; }
+        .l-trans-pix { background-color: #e7f5ff; border-color: #1c7ed6; }
+        
+        .l-app-cs { background-color: #e2d9f3; border-color: #6f42c1; }
+        .l-trans-cs { background-color: #fff3cd; border-color: #ffc107; }
+
+    </style>
+</head>
+<body>
+    <div contenteditable="true">
+        <!-- PAGE 1: Intro & VoIP Text -->
+        <section class="page">
+            <div class="page-content">
+                <h1>Atividade 3</h1>
+                
+                <blockquote>
+                    <p>Os sistemas distribuídos necessitam se comunicar para trocar informações relevantes para a execução de suas funcionalidades. Para permitir esta comunicação, é necessário o uso de protocolos bem definidos que descrevem como deve acontecer a comunicação. Este protocolo bem definido é essencial para que, mesmo sistemas que não se conheçam, possam se comunicar de forma correta. Assim, dentre os protocolos de comunicação usados para o transporte de mensagens temos o TCP e o UDP. Em complemento ao que foi exposto, considere a citação a seguir:</p>
+                    <blockquote>
+                        <b>“O sucesso do protocolo TCP/IP deve-se à sua independência em relação à tecnologia de transmissão subjacente, o que permite a interligação de muitas redes e enlaces de dados heterogêneos. Os usuários e os programas aplicativos percebem uma única rede virtual suportando TCP e UDP, e os desenvolvedores de programas baseados em TCP e UDP veem uma única rede IP virtual, ocultando a diversidade da mídia de transmissão subjacente.”</b> (COULOURIS, 2013, p. 108).
+                    </blockquote>
+                    <p>Na sequência, a questão tem por objetivo avaliar a capacidade do estudante de entender os principais conceitos que diferenciam os protocolos TCP e UDP, discriminando quando é mais relevante usar TCP ou UDP. Considerando o que foi exposto, disserte sobre pelo menos 3 cenários (sistemas) do seu cotidiano e indique qual o protocolo mais apropriado, podendo ser o protocolo TCP ou o UDP. Justifique suas respostas.</p>
+                </blockquote>
+
+                <h2>Aplicações VOIP - Telefonia IP</h2>
+                <p>A Telefonia IP, baseada no protocolo SIP (Session Initiation Protocol), é muito presente em empresas, onde a comunicação entre os escritórios, setores, é via telefones IP (ou softphones, também muito presentes em empresas de televendas e cobranças, onde as chamadas são realizadas pelo computador).</p>
+                <p>O protocolo SIP é responsável por estabelecer, modificar e encerrar chamadas multimídia (voz e vídeo). Embora o SIP possa operar sobre TCP ou UDP na camada de transporte, o UDP é tradicionalmente mais relevante e utilizado na maioria das implementações padrão por motivos diretamente ligados à natureza das comunicações em tempo real.</p>
+                <p>Aqui estão os principais motivos para a preferência do UDP:</p>
+                <ul>
+                    <li><strong>Baixa Latência e Velocidade:</strong> O UDP é um protocolo não orientado a conexão. Ele não exige o <code>handshake</code> (a abertura da conexão de transporte por meio do processo padrão de três vias do TCP (SYN, SYN-ACK, ACK) seguido pela troca de mensagens de sinalização de sessão da camada de aplicação) inicial que o TCP necessita para estabelecer uma conexão. Em chamadas de voz, cada milissegundo importa para evitar atrasos perceptíveis.</li>
+                    <li><strong>Ausência de Retransmissão (Sem Head-of-Line Blocking):</strong> O TCP garante a entrega dos pacotes. Se um pacote for perdido, o TCP pausa o fluxo para retransmiti-lo. Em telefonia IP, um pacote de voz ou de sinalização atrasado é inútil e causa "picotes" ou atrasos na chamada (jitter). O UDP simplesmente descarta o que foi perdido e segue em frente.</li>
+                    <li><strong>Menor Overhead (Sobrecarga):</strong> Os cabeçalhos do UDP são muito menores e exigem menos processamento dos servidores (PBX/SBC) e dos telefones (Endpoints), permitindo que um servidor suporte um número muito maior de chamadas simultâneas.</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- PAGE 2: VoIP Diagrams -->
+        <section class="page">
+            <div class="page-content">
+                <h3>Estabelecimento de Conexão (TCP vs. UDP)</h3>
+                <p>Demonstração do atraso inerente do TCP em comparação com a entrega direta do UDP durante a sinalização inicial.</p>
+                
+                <table class="seq-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 45%;">Cliente (SIP UA)</th>
+                            <th style="width: 10%;"></th>
+                            <th style="width: 45%;">Servidor (SIP Proxy/PBX)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="3" class="note">Cenário 1: Comunicação SIP via TCP (Com Overhead)</td></tr>
+                        <tr><td class="msg-right">1. SYN (Início do Handshake)</td><td class="dir">&rarr;</td><td></td></tr>
+                        <tr><td></td><td class="dir">&larr;</td><td class="msg-left">2. SYN-ACK</td></tr>
+                        <tr><td class="msg-right">3. ACK (Conexão TCP Estabelecida)</td><td class="dir">&rarr;</td><td></td></tr>
+                        <tr><td class="msg-right">4. SIP INVITE (Solicitação de Chamada)</td><td class="dir">&rarr;</td><td></td></tr>
+                        <tr><td></td><td class="dir">&larr;</td><td class="msg-left">5. SIP 100 Trying / 200 OK</td></tr>
+                        
+                        <tr><td colspan="3" class="note">Cenário 2: Comunicação SIP via UDP (Direto e Rápido)</td></tr>
+                        <tr><td class="msg-right">1. SIP INVITE (Solicitação de Chamada Direta)</td><td class="dir">&rarr;</td><td></td></tr>
+                        <tr><td></td><td class="dir">&larr;</td><td class="msg-left">2. SIP 100 Trying / 200 OK</td></tr>
+                    </tbody>
+                </table>
+
+                <h3>Telefonia IP na Camada OSI</h3>
+                <div class="osi-stack">
+                    <div class="osi-layer l-app">
+                        <div class="osi-title">Camada 7: Aplicação</div>
+                        <div class="osi-desc">SIP (Sinalização)<br>RTP / RTCP (Tráfego de Áudio/Vídeo)<br>SDP (Descrição da Sessão)</div>
+                    </div>
+                    <div class="osi-arrow">&darr;</div>
+                    <div class="osi-layer l-app">
+                        <div class="osi-title">Camada 6: Apresentação</div>
+                        <div class="osi-desc">Codecs de Áudio (G.711, Opus, G.729)</div>
+                    </div>
+                    <div class="osi-arrow">&darr;</div>
+                    <div class="osi-layer l-app">
+                        <div class="osi-title">Camada 5: Sessão</div>
+                        <div class="osi-desc">SIP (Gerencia a abertura e fechamento da chamada)</div>
+                    </div>
+                    <div class="osi-arrow">&darr;</div>
+                    <div class="osi-layer l-trans">
+                        <div class="osi-title">Camada 4: Transporte</div>
+                        <div class="osi-desc">UDP (Preferencial para SIP/RTP)<br>TCP (Opcional/TLS)</div>
+                    </div>
+                    <div class="osi-arrow">&darr;</div>
+                    <div class="osi-layer l-lower">
+                        <div class="osi-title">Camada 3: Rede</div>
+                        <div class="osi-desc">IPv4 / IPv6 (Roteamento dos pacotes SIP)</div>
+                    </div>
+                    <div class="osi-arrow">&darr;</div>
+                    <div class="osi-layer l-lower">
+                        <div class="osi-title">Camada 2: Enlace</div>
+                        <div class="osi-desc">Ethernet / Wi-Fi (MAC Address)</div>
+                    </div>
+                    <div class="osi-arrow">&darr;</div>
+                    <div class="osi-layer l-lower">
+                        <div class="osi-title">Camada 1: Física</div>
+                        <div class="osi-desc">Hardware (Cabos, Sinais)</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 3: PIX Text & Sequence -->
+        <section class="page">
+            <div class="page-content">
+                <h2>Aplicativos Bancários e Transações PIX</h2>
+                <p>Em aplicações bancárias, especialmente em transações financeiras críticas como o PIX, o uso do protocolo TCP (Transmission Control Protocol) é absolutamente obrigatório na camada de transporte. Ao contrário da telefonia IP, onde a velocidade e a continuidade são mais importantes que a perda de um pacote, no sistema financeiro a integridade, a segurança e a garantia de entrega da informação são requisitos obrigatórios.</p>
+                <p>Motivos principais para o uso exclusivo do TCP em transações PIX:</p>
+                <ul>
+                    <li><strong>Garantia de Entrega (Confiabilidade):</strong> Em uma transferência PIX, se um pacote de dados for perdido na rede, a transação não pode simplesmente ficar pela metade (o dinheiro sair de uma conta e não chegar na outra). O TCP confirma a entrega de cada pacote (usando ACK's). Se algo se perder, o TCP retransmite automaticamente.</li>
+                    <li><strong>Ordenação dos Dados:</strong> O TCP garante que os pacotes cheguem e sejam remontados na ordem exata em que foram enviados, o que é essencial para processar o payload JSON de uma requisição REST sem corromper a estrutura de dados (como valor da transação, chave PIX e dados de autenticação).</li>
+                    <li><strong>Pré-requisito para Segurança (TLS/HTTPS):</strong> O Banco Central exige que toda a comunicação do PIX (tanto do seu celular para o banco, quanto do banco para o Banco Central) seja fortemente criptografada via TLS (Mutual TLS em muitos casos). O protocolo TLS exige uma conexão de transporte confiável e orientada a conexão (TCP) para realizar o seu handshake de chaves de segurança antes de qualquer dado bancário transitar.</li>
+                </ul>
+
+                <h3>Comunicação REST do PIX via TCP</h3>
+                <table class="seq-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 45%;">App Bancário (Cliente)</th>
+                            <th style="width: 10%;"></th>
+                            <th style="width: 45%;">Servidor do Banco (API REST)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="3" class="note">1. Camada de Transporte: Handshake TCP</td></tr>
+                        <tr><td class="msg-right">SYN (Quero me conectar)</td><td class="dir">&rarr;</td><td></td></tr>
+                        <tr><td></td><td class="dir">&larr;</td><td class="msg-left">SYN-ACK (Recebido, estou pronto)</td></tr>
+                        <tr><td class="msg-right">ACK (Conexão TCP Estabelecida)</td><td class="dir">&rarr;</td><td></td></tr>
+                        
+                        <tr><td colspan="3" class="note">2. Camada de Apresentação/Sessão: Handshake TLS (HTTPS)</td></tr>
+                        <tr><td class="msg-right">Client Hello (Cifras suportadas)</td><td class="dir">&rarr;</td><td></td></tr>
+                        <tr><td></td><td class="dir">&larr;</td><td class="msg-left">Server Hello + Certificado Digital</td></tr>
+                        <tr><td class="msg-right">Troca de Chaves Criptográficas</td><td class="dir">&harr;</td><td class="msg-left">Troca de Chaves Criptográficas</td></tr>
+                        
+                        <tr><td colspan="3" class="note">3. Camada de Aplicação: Transação PIX (REST)</td></tr>
+                        <tr><td class="msg-right">POST /api/pix/v1/transfer<br>(Payload JSON Criptografado)</td><td class="dir">&rarr;</td><td><em>Banco valida saldo, autenticação e liquida junto ao Banco Central.</em></td></tr>
+                        <tr><td></td><td class="dir">&larr;</td><td class="msg-left">HTTP 200 OK<br>(JSON: Recibo e ID da Transação)</td></tr>
+                   
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- PAGE 4: PIX OSI & CS2 Text -->
+        <section class="page">
+            <div class="page-content">
+                <table class="seq-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 45%;">App Bancário (Cliente)</th>
+                            <th style="width: 10%;"></th>
+                            <th style="width: 45%;">Servidor do Banco (API REST)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="3" class="note">4. Encerramento da Conexão Segura</td>
+                        </tr>
+                        <tr>
+                            <td class="msg-right">FIN (Transação finalizada)</td>
+                            <td class="dir">&rarr;</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td class="dir">&larr;</td>
+                            <td class="msg-left">FIN-ACK</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>PIX na camada OSI</h3>
+                <div class="osi-stack">
+                    <div class="osi-layer l-app-pix">
+                        <div class="osi-title">Camada 7: Aplicação</div>
+                        <div class="osi-desc">📍 APIs REST (Regras de Negócio PIX)<br>📍 HTTP/1.1 ou HTTP/2<br>📍 JSON (Payload com dados da transferência)</div>
+                    </div>
+                    <div class="osi-arrow">&darr;</div>
+                    <div class="osi-layer l-app-pix">
+                        <div class="osi-title">Camada 6: Apresentação</div>
+                        <div class="osi-desc">📍 TLS (Criptografia Ponta a Ponta - HTTPS)<br>📍 Serialização/Codificação (UTF-8)</div>
+                    </div>
+                    <div class="osi-arrow">&darr;</div>
+                    <div class="osi-layer l-app-pix">
+                        <div class="osi-title">Camada 5: Sessão</div>
+                        <div class="osi-desc">📍 TLS Session ID (Manutenção da sessão segura)<br>📍 Tokens de Autenticação (JWT/OAuth)</div>
+                    </div>
+                    <div class="osi-arrow">&darr;</div>
+                    <div class="osi-layer l-trans-pix">
+                        <div class="osi-title">Camada 4: Transporte</div>
+                        <div class="osi-desc">📍 TCP (Garante entrega, ordem e retransmissão)<br>📍 Porta 443 (Padrão HTTPS)</div>
+                    </div>
+                    <div class="osi-arrow">&darr;</div>
+                    <div class="osi-layer l-lower">
+                        <div class="osi-title">Camada 3: Rede</div>
+                        <div class="osi-desc">📍 IPv4 / IPv6 (Roteamento entre o 4G/Wi-Fi e Datacenter)</div>
+                    </div>
+                    <div class="osi-arrow">&darr;</div>
+                    <div class="osi-layer l-lower">
+                        <div class="osi-title">Camada 2: Enlace</div>
+                        <div class="osi-desc">📍 4G / 5G / Wi-Fi (Protocolos de enlace móvel ou local)</div>
+                    </div>
+                    <div class="osi-arrow">&darr;</div>
+                    <div class="osi-layer l-lower">
+                        <div class="osi-title">Camada 1: Física</div>
+                        <div class="osi-desc">📍 Ondas de Rádio RF (Celular), Fibras Ópticas (Backbone)</div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- PAGE 5: CS2 Diagrams -->
+        <section class="page">
+            <div class="page-content">
+                <h2>Jogos Multiplayer - Counter Strike 2</h2>
+                <p>Em jogos multiplayer competitivos de ritmo acelerado, como o Counter-Strike 2 (CS2), a arquitetura de rede adota uma
+                    abordagem híbrida inteligente: ela utiliza TCP para processos administrativos e UDP para o gameplay em tempo real.
+                </p>
+                <p>O uso predominante do UDP no momento da partida ocorre porque, nos jogos de tiro (FPS), a latência (ping) é o fator
+                    mais crítico.</p>
+                <ul>
+                    <li><strong>Por que UDP no Gameplay (Tiros, Movimentação)?</strong><br>O servidor de CS2 processa o jogo dezenas de
+                        vezes por segundo (usando o sistema de sub-tick). Se um pacote com a posição do seu mouse ou movimento do
+                        personagem for perdido na rede, não faz sentido o TCP pausar o jogo e retransmitir esse pacote. Quando o pacote
+                        retransmitido chegasse, a informação já seria velha (o inimigo já teria se movido). O UDP simplesmente ignora a
+                        perda e processa o próximo pacote recebido, mantendo o jogo fluido e em tempo real.</li>
+                    <li><strong>Por que TCP na Autenticação (Login, Inventário, Chat)?</strong><br>Para entrar na sua conta Steam, abrir
+                        uma caixa de skins ou enviar uma mensagem no chat, o tempo não é tão crítico quanto um tiro de AWP. No entanto,
+                        a integridade da transação é absoluta. O TCP garante que o servidor receba exatamente o comando de compra da
+                        skin, sem perdas e na ordem certa, retransmitindo se houver instabilidade.</li>
+                </ul>
+
+                <h3>Comunicação Híbrida no jogo Counter Strike 2</h3>
+                <table class="seq-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 40%;">CS2 Client (Jogador)</th>
+                            <th style="width: 10%;"></th>
+                            <th style="width: 50%;">Steam/CS2 Services & Game Server</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="3" class="note">1. Pré-Jogo: Autenticação via TCP (Lento, mas Confiável)</td></tr>
+                        <tr><td class="msg-right">TCP SYN / ACK / Handshake</td><td class="dir">&harr;</td><td class="msg-left">Serviço de Autenticação (Auth)</td></tr>
+                        <tr><td class="msg-right">Credenciais e Check de Inventário</td><td class="dir">&rarr;</td><td></td></tr>
+                        <tr><td></td><td class="dir">&larr;</td><td class="msg-left">Token Validado. Skins Carregadas.</td></tr>
+                        
+                        <tr><td colspan="3" class="note">2. Na Partida: Gameplay via UDP (Rápido, Foco no Momento Atual)</td></tr>
+                        <tr><td class="msg-right">[Tick 1] Movimento para frente (UDP)</td><td class="dir">&rarr;</td><td></td></tr>
+                        <tr><td></td><td class="dir">&larr;</td><td class="msg-left">[Tick 1] Posição de todos os jogadores (UDP)</td></tr>
+                        <tr><td class="msg-right error">[Tick 2] Clique do Mouse / Tiro (PACOTE PERDIDO)</td><td class="dir error">&times;</td><td><em>Servidor não sabe do Tick 2 e NÃO espera.</em></td></tr>
+                        <tr><td class="msg-right">[Tick 3] Continua atirando (UDP)</td><td class="dir">&rarr;</td><td></td></tr>
+                        <tr><td></td><td class="dir">&larr;</td><td class="msg-left">[Tick 3] Estado atualizado do mundo (UDP)</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="page">
+            <div class="page-content">
+                <h3>Protocolo do jogo na camada OSI</h3>
+                <div class="osi-stack">
+                    <div class="osi-layer l-app-cs">
+                        <div class="osi-title">Camada 7: Aplicação</div>
+                        <div class="osi-desc">📍 Source 2 Net Protocol (Sub-tick updates, Game State)<br>📍 Steamworks API (Auth,
+                            Matchmaking, Inventário)</div>
+                    </div>
+                    <div class="osi-arrow">&darr;</div>
+                    <div class="osi-layer l-app-cs">
+                        <div class="osi-title">Camada 6: Apresentação</div>
+                        <div class="osi-desc">📍 Delta Encoding (Envia apenas o que mudou na tela)<br>📍 Criptografia de tráfego do
+                            jogo</div>
+                    </div>
+                    <div class="osi-arrow">&darr;</div>
+                    <div class="osi-layer l-app-cs">
+                        <div class="osi-title">Camada 5: Sessão</div>
+                        <div class="osi-desc">📍 Controle de Sessão de Partida (Desconexões, Timeouts)</div>
+                    </div>
+                    <div class="osi-arrow">&darr;</div>
+                    <div class="osi-layer l-trans-cs">
+                        <div class="osi-title">Camada 4: Transporte</div>
+                        <div class="osi-desc">📍 UDP (Comunicação principal na partida)<br>📍 TCP (Login, Download de Atualizações)
+                        </div>
+                    </div>
+                    <div class="osi-arrow">&darr;</div>
+                    <div class="osi-layer l-lower">
+                        <div class="osi-title">Camada 3: Rede</div>
+                        <div class="osi-desc">📍 IPv4 / IPv6<br>📍 Steam Datagram Relay - SDR (Roteamento Privado)</div>
+                    </div>
+                    <div class="osi-arrow">&darr;</div>
+                    <div class="osi-layer l-lower">
+                        <div class="osi-title">Camada 2: Enlace</div>
+                        <div class="osi-desc">📍 Ethernet / Wi-Fi (Placa de rede do PC do Jogador)</div>
+                    </div>
+                    <div class="osi-arrow">&darr;</div>
+                    <div class="osi-layer l-lower">
+                        <div class="osi-title">Camada 1: Física</div>
+                        <div class="osi-desc">📍 Hardware e Meios de Transmissão</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+</body>
+</html>
